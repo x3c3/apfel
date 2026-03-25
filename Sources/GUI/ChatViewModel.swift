@@ -168,11 +168,16 @@ class ChatViewModel {
             }
         } else {
             Task {
-                let authorized = await stt.requestPermissions()
-                if authorized {
-                    stt.startListening()
-                } else {
-                    errorMessage = "Microphone permission denied"
+                do {
+                    let authorized = await stt.requestPermissions()
+                    if authorized {
+                        stt.startListening()
+                        if let err = stt.errorMessage {
+                            errorMessage = err
+                        }
+                    } else {
+                        errorMessage = stt.errorMessage ?? "Microphone/speech permission denied. Enable in System Settings → Privacy & Security."
+                    }
                 }
             }
         }
