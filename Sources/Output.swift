@@ -34,7 +34,7 @@ nonisolated(unsafe) var quietMode = false
 
 // MARK: - ANSI Colors
 
-enum Color: String, Sendable {
+enum ANSIColor: String, Sendable {
     case reset   = "\u{001B}[0m"
     case bold    = "\u{001B}[1m"
     case dim     = "\u{001B}[2m"
@@ -47,11 +47,11 @@ enum Color: String, Sendable {
 
 /// Apply ANSI color codes to text. Returns plain text if stdout is not a TTY,
 /// NO_COLOR is set, or --no-color was passed.
-func styled(_ text: String, _ colors: Color...) -> String {
+func styled(_ text: String, _ colors: ANSIColor...) -> String {
     let isTerminal = isatty(STDOUT_FILENO) != 0
     guard isTerminal, !noColorEnv, !noColorFlag else { return text }
     let prefix = colors.map(\.rawValue).joined()
-    return "\(prefix)\(text)\(Color.reset.rawValue)"
+    return "\(prefix)\(text)\(ANSIColor.reset.rawValue)"
 }
 
 // MARK: - Output Helpers

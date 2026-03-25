@@ -110,6 +110,9 @@ while i < args.count {
     case "--serve":
         mode = "serve"
 
+    case "--gui":
+        mode = "gui"
+
     case "--port":
         i += 1
         guard i < args.count, let p = Int(args[i]), p > 0, p < 65536 else {
@@ -156,6 +159,9 @@ while i < args.count {
 
 do {
     switch mode {
+    case "gui":
+        startGUI()
+
     case "serve":
         let config = ServerConfig(
             host: serverHost,

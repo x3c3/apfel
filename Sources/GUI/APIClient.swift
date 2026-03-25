@@ -1,0 +1,223 @@
+// ============================================================================
+// APIClient.swift — HTTP client to apfel --serve
+// Part of apfel GUI — talks to the server via OpenAI-compatible API
+// NO FoundationModels import — all AI logic lives in the server.
+// ============================================================================
+
+import Foundation
+
+/// HTTP client that talks to the apfel server's OpenAI-compatible API.
+/// This is the ONLY file that makes network requests. Pure URLSession.
+final class APIClient: Sendable {
+    let baseURL: URL
+
+    init(port: Int) {
+        self.baseURL = URL(string: "http://127.0.0.1:\(port)")!
+    }
+
+    // MARK: - Health Check
+
+    func healthCheck() async -> Bool {
+        guard let url = URL(string: "/health", relativeTo: baseURL) else { return false }
+        do {
+            let (_, response) = try await URLSession.shared.data(from: url)
+            return (response as? HTTPURLResponse)?.statusCode == 200
+        } catch {
+            return false
+        }
+    }
+
+    // MARK: - Chat Completion (Non-Streaming)
+
+    struct ChatRequest: Encodable {
+        let model: String
+        let messages: [Message]
+        let stream: Bool
+
+        struct Message: Encodable {
+            let role: String
+            let content: String
+        }
+    }
+
+    struct ChatResponse: Decodable {
+        let id: String
+        let choices: [Choice]
+        let usage: Usage?
+
+        struct Choice: Decodable {
+            let message: ResponseMessage
+            let finish_reason: String?
+        }
+        struct ResponseMessage: Decodable {
+            let role: String
+            let content: String
+        }
+        struct Usage: Decodable {
+            let prompt_tokens: Int?
+            let completion_tokens: Int?
+            let total_tokens: Int?
+        }
+    }
+
+    func chatCompletion(
+        messages: [(role: String, content: String)],
+        systemPrompt: String?
+    ) async throws -> (response: ChatResponse, requestJSON: String, responseJSON: String, durationMs: Int) {
+        let start = Date()
+        let apiMessages = buildMessages(messages: messages, systemPrompt: systemPrompt)
+        let request = ChatRequest(
+            model: "apple-foundationmodel",
+            messages: apiMessages,
+            stream: false
+        )
+        let requestJSON = prettyJSON(request)
+
+        var urlRequest = URLRequest(url: URL(string: "/v1/chat/completions", relativeTo: baseURL)!)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let (data, _) = try await URLSession.shared.data(for: urlRequest)
+        let durationMs = Int(Date().timeIntervalSince(start) * 1000)
+        let responseJSON = String(data: data, encoding: .utf8) ?? "{}"
+        let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
+
+        return (decoded, requestJSON, prettyFormatJSON(responseJSON), durationMs)
+    }
+
+    // MARK: - Chat Completion (Streaming)
+
+    func streamChatCompletion(
+        messages: [(role: String, content: String)],
+        systemPrompt: String?
+    ) -> (stream: AsyncThrowingStream<String, Error>, requestJSON: String) {
+        let apiMessages = buildMessages(messages: messages, systemPrompt: systemPrompt)
+        let request = ChatRequest(
+            model: "apple-foundationmodel",
+            messages: apiMessages,
+            stream: true
+        )
+        let requestJSON = prettyJSON(request)
+        let url = URL(string: "/v1/chat/completions", relativeTo: baseURL)!
+
+        let stream = AsyncThrowingStream<String, Error> { continuation in
+            Task {
+                do {
+                    var urlRequest = URLRequest(url: url)
+                    urlRequest.httpMethod = "POST"
+                    urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    urlRequest.httpBody = try JSONEncoder().encode(request)
+
+                    let (bytes, _) = try await URLSession.shared.bytes(for: urlRequest)
+                    for try await line in bytes.lines {
+                        if line.hasPrefix("data: [DONE]") {
+                            break
+                        }
+                        if line.hasPrefix("data: ") {
+                            let json = String(line.dropFirst(6))
+                            if let data = json.data(using: .utf8),
+                               let chunk = try? JSONDecoder().decode(StreamChunk.self, from: data),
+                               let content = chunk.choices.first?.delta.content {
+                                continuation.yield(content)
+                            }
+                        }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
+
+        return (stream, requestJSON)
+    }
+
+    private struct StreamChunk: Decodable {
+        let choices: [ChunkChoice]
+        struct ChunkChoice: Decodable {
+            let delta: Delta
+        }
+        struct Delta: Decodable {
+            let content: String?
+        }
+    }
+
+    // MARK: - Logs
+
+    struct LogEntry: Decodable, Identifiable {
+        let id: String
+        let timestamp: String
+        let method: String
+        let path: String
+        let status: Int
+        let duration_ms: Int
+        let stream: Bool
+        let estimated_tokens: Int?
+        let error: String?
+    }
+
+    struct LogListResponse: Decodable {
+        let count: Int
+        let data: [LogEntry]
+    }
+
+    func fetchLogs(errorsOnly: Bool = false, limit: Int = 100) async throws -> [LogEntry] {
+        var urlStr = "/v1/logs?limit=\(limit)"
+        if errorsOnly { urlStr += "&errors=true" }
+        let url = URL(string: urlStr, relativeTo: baseURL)!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let response = try JSONDecoder().decode(LogListResponse.self, from: data)
+        return response.data
+    }
+
+    // MARK: - Stats
+
+    struct ServerStats: Decodable {
+        let uptime_seconds: Int
+        let total_requests: Int
+        let total_errors: Int
+        let avg_duration_ms: Int
+        let requests_per_minute: Double
+        let active_requests: Int
+        let max_concurrent: Int
+    }
+
+    func fetchStats() async throws -> ServerStats {
+        let url = URL(string: "/v1/logs/stats", relativeTo: baseURL)!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(ServerStats.self, from: data)
+    }
+
+    // MARK: - Helpers
+
+    private func buildMessages(
+        messages: [(role: String, content: String)],
+        systemPrompt: String?
+    ) -> [ChatRequest.Message] {
+        var apiMessages: [ChatRequest.Message] = []
+        if let sys = systemPrompt, !sys.isEmpty {
+            apiMessages.append(.init(role: "system", content: sys))
+        }
+        for msg in messages {
+            apiMessages.append(.init(role: msg.role, content: msg.content))
+        }
+        return apiMessages
+    }
+
+    private func prettyJSON<T: Encodable>(_ value: T) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(value),
+              let str = String(data: data, encoding: .utf8) else { return "{}" }
+        return str
+    }
+
+    private func prettyFormatJSON(_ raw: String) -> String {
+        guard let data = raw.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data),
+              let pretty = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted, .sortedKeys]),
+              let str = String(data: pretty, encoding: .utf8) else { return raw }
+        return str
+    }
+}
