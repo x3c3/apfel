@@ -88,6 +88,10 @@ final class APIClient: Sendable {
 
     // MARK: - Chat Completion (Streaming)
 
+    /// Collected raw SSE lines from the last streaming request.
+    /// Access after the stream finishes to get the truthful server response.
+    nonisolated(unsafe) static var lastRawSSEResponse: String = ""
+
     func streamChatCompletion(
         messages: [(role: String, content: String)],
         systemPrompt: String?
@@ -103,6 +107,7 @@ final class APIClient: Sendable {
 
         let stream = AsyncThrowingStream<String, Error> { continuation in
             Task {
+                var rawLines: [String] = []
                 do {
                     var urlRequest = URLRequest(url: url)
                     urlRequest.httpMethod = "POST"
@@ -111,6 +116,9 @@ final class APIClient: Sendable {
 
                     let (bytes, _) = try await URLSession.shared.bytes(for: urlRequest)
                     for try await line in bytes.lines {
+                        if !line.isEmpty {
+                            rawLines.append(line)
+                        }
                         if line.hasPrefix("data: [DONE]") {
                             break
                         }
@@ -123,8 +131,10 @@ final class APIClient: Sendable {
                             }
                         }
                     }
+                    APIClient.lastRawSSEResponse = rawLines.joined(separator: "\n")
                     continuation.finish()
                 } catch {
+                    APIClient.lastRawSSEResponse = rawLines.joined(separator: "\n") + "\nerror: \(error.localizedDescription)"
                     continuation.finish(throwing: error)
                 }
             }

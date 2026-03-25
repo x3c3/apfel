@@ -71,33 +71,33 @@ struct DebugPanel: View {
                             )
                         }
 
-                        // Content
-                        codeSection(
-                            title: "Content",
-                            icon: "text.quote",
-                            text: msg.content,
-                            color: .primary
-                        )
-
-                        // Request JSON
+                        // What we SENT to the server
                         if let json = msg.requestJSON {
                             codeSection(
-                                title: "HTTP Request Body",
+                                title: "What We Sent (HTTP Request Body)",
                                 icon: "arrow.up.doc.fill",
                                 text: json,
                                 color: .orange
                             )
                         }
 
-                        // Response JSON
+                        // What the server RESPONDED with (raw, truthful)
                         if let json = msg.responseJSON {
                             codeSection(
-                                title: "HTTP Response Body",
+                                title: "What We Got Back (Raw Server Response)",
                                 icon: "arrow.down.doc.fill",
                                 text: json,
                                 color: .green
                             )
                         }
+
+                        // Extracted content
+                        codeSection(
+                            title: "Extracted Content",
+                            icon: "text.quote",
+                            text: msg.content,
+                            color: .primary
+                        )
                     }
                     .padding(12)
                 }

@@ -100,19 +100,13 @@ class ChatViewModel {
             }
 
             let durationMs = Int(Date().timeIntervalSince(start) * 1000)
+            let rawResponse = APIClient.lastRawSSEResponse
             updateMessage(id: assistantId) { msg in
                 msg.isStreaming = false
                 msg.durationMs = durationMs
                 msg.tokenCount = max(1, msg.content.count / 4)
-                // Build response JSON for debug
-                msg.responseJSON = """
-                {
-                  "content": \(jsonEscape(msg.content)),
-                  "model": "apple-foundationmodel",
-                  "duration_ms": \(durationMs),
-                  "estimated_tokens": \(max(1, msg.content.count / 4))
-                }
-                """
+                // Use the REAL raw SSE response from the server — 100% truthful
+                msg.responseJSON = rawResponse
             }
         } catch {
             updateMessage(id: assistantId) { msg in
