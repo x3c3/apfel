@@ -115,10 +115,4 @@ struct ModelsListResponse: Encodable, Sendable {
     }
 }
 
-// MARK: - Token Estimation
-
-/// Rough token estimate: characters / 4 (standard approximation).
-/// FoundationModels doesn't expose actual token counts.
-func estimateTokens(_ text: String) -> Int {
-    max(1, text.count / 4)
-}
+// Token counting is handled by TokenCounter.swift (uses Apple's real API).

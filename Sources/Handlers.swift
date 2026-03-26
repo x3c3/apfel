@@ -166,8 +166,8 @@ private func nonStreamingResponse(
     let result = try await session.respond(to: prompt)
     let content = result.content
 
-    let promptTokens = estimateTokens(prompt)
-    let completionTokens = estimateTokens(content)
+    let promptTokens = await TokenCounter.shared.count(prompt)
+    let completionTokens = await TokenCounter.shared.count(content)
 
     let payload = ChatCompletionResponse(
         id: id,
@@ -284,7 +284,7 @@ private func streamingResponse(
                 status: streamError == nil ? 200 : 500,
                 duration_ms: Int(Date().timeIntervalSince(streamStart) * 1000),
                 stream: true,
-                estimated_tokens: estimateTokens(prev),
+                estimated_tokens: await TokenCounter.shared.count(prev),
                 error: streamError,
                 request_body: truncateForLog(requestBody),
                 response_body: truncateForLog(responseLines.joined(separator: "\n\n")),
@@ -304,7 +304,7 @@ private func streamingResponse(
         response,
         ChatRequestTrace(
             stream: true,
-            estimatedTokens: estimateTokens(prompt),
+            estimatedTokens: max(1, prompt.count / 4),
             error: nil,
             requestBody: truncateForLog(requestBody),
             responseBody: "Streaming response in progress. See /v1/chat/completions/stream log entry for final SSE transcript.",
