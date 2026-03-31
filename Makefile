@@ -2,11 +2,50 @@ PREFIX ?= /usr/local
 BINARY = apfel
 VERSION_FILE = .version
 
-.PHONY: build install uninstall clean bump-patch bump-minor bump-major generate-build-info update-readme version release-minor release-major
+.PHONY: check-toolchain build install uninstall clean bump-patch bump-minor bump-major generate-build-info update-readme version release-minor release-major
+
+# --- Environment checks ---
+
+check-toolchain:
+	@sdk=$$(xcrun --show-sdk-version 2>/dev/null || echo "missing"); \
+	devdir=$$(xcode-select -p 2>/dev/null || echo "missing"); \
+	os_ver=$$(sw_vers -productVersion 2>/dev/null || echo "unknown"); \
+	if [ "$$sdk" = "missing" ]; then \
+		echo ""; \
+		echo "error: apfel could not determine your active Apple SDK version."; \
+		echo "Selected developer dir: $$devdir"; \
+		echo "Install or update Command Line Tools (or Xcode), then retry."; \
+		echo ""; \
+		echo "Checks:"; \
+		echo "  xcode-select -p"; \
+		echo "  xcrun --show-sdk-version"; \
+		exit 1; \
+	fi; \
+	major=$$(echo "$$sdk" | cut -d. -f1); \
+	minor=$$(echo "$$sdk" | cut -d. -f2); \
+	if [ -z "$$minor" ]; then minor=0; fi; \
+	if [ "$$major" -lt 26 ] || { [ "$$major" -eq 26 ] && [ "$$minor" -lt 4 ]; }; then \
+		echo ""; \
+		echo "error: apfel requires Apple developer tools with the macOS 26.4 SDK or newer."; \
+		echo "Your macOS version: $$os_ver"; \
+		echo "Active SDK version: $$sdk"; \
+		echo "Selected developer dir: $$devdir"; \
+		echo ""; \
+		echo "Why this fails:"; \
+		echo "  FoundationModels token-counting APIs (tokenCount/contextSize) are missing from older SDKs."; \
+		echo ""; \
+		echo "What you need to update:"; \
+		echo "  1. Update Command Line Tools or install Xcode 26.4+."; \
+		echo "  2. If Xcode 26.4+ is already installed, select it:"; \
+		echo "     sudo xcode-select -s /Applications/Xcode.app/Contents/Developer"; \
+		echo "  3. Re-check with: xcrun --show-sdk-version"; \
+		echo "  4. Re-run: make install"; \
+		exit 1; \
+	fi
 
 # --- Build (auto-bumps patch) ---
 
-build: bump-patch generate-build-info update-readme
+build: check-toolchain bump-patch generate-build-info update-readme
 	swift build -c release
 
 install: build
@@ -48,10 +87,10 @@ bump-major:
 
 # --- Release targets (bump without extra patch increment) ---
 
-release-minor: bump-minor generate-build-info update-readme
+release-minor: check-toolchain bump-minor generate-build-info update-readme
 	swift build -c release
 
-release-major: bump-major generate-build-info update-readme
+release-major: check-toolchain bump-major generate-build-info update-readme
 	swift build -c release
 
 # --- Generated files ---

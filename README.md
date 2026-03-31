@@ -32,8 +32,8 @@ Every Mac with Apple Silicon has a **built-in LLM** - Apple's on-device foundati
 | **Mac** | Apple Silicon (M1 or later) |
 | **macOS** | **macOS 26.4** or later |
 | **Apple Intelligence** | Must be [enabled in System Settings](https://support.apple.com/en-us/121115) |
-| **Swift** | Swift 6.2+ (comes with Command Line Tools) |
-| **Xcode** | **NOT required** - Command Line Tools only |
+| **Swift** | Swift 6.2+ with developer tools that include the **macOS 26.4 SDK** |
+| **Xcode** | **NOT required** - current Command Line Tools are enough |
 
 Check if you're ready:
 
@@ -43,6 +43,12 @@ sw_vers
 
 # Check Swift is installed
 swift --version
+
+# Check the active Apple SDK version (must be 26.4+)
+xcrun --show-sdk-version
+
+# Check which developer tools are selected
+xcode-select -p
 
 # If Swift is missing, install Command Line Tools:
 xcode-select --install
@@ -60,6 +66,15 @@ That's it. `make install` does everything:
 1. Auto-bumps the version number
 2. Builds a release binary
 3. Installs to `/usr/local/bin/apfel`
+
+If `make install` fails with errors like:
+
+```text
+value of type 'SystemLanguageModel' has no member 'tokenCount'
+value of type 'SystemLanguageModel' has no member 'contextSize'
+```
+
+your Mac may already be on macOS 26.4, but your selected developer tools are older than the macOS 26.4 SDK. Update Command Line Tools (or Xcode), confirm `xcrun --show-sdk-version` prints `26.4` or newer, then rerun `make install`.
 
 Verify it works:
 
