@@ -62,6 +62,9 @@ Shell note: if your prompt contains `!`, prefer single quotes in `zsh`/`bash` so
 # Single prompt
 apfel "What is the capital of Austria?"
 
+# Permissive mode -- reduces guardrail false positives for creative/long prompts
+apfel --permissive "Write a dramatic opening for a thriller novel"
+
 # Stream output
 apfel --stream "Write a haiku about code"
 
@@ -85,9 +88,6 @@ apfel -s "You are a pirate" "What is recursion?"
 
 # System prompt from file
 apfel --system-file persona.txt "Explain TCP/IP"
-
-# Permissive mode -- reduces guardrail false positives for creative/long prompts
-apfel --permissive "Write a dramatic opening for a thriller novel"
 
 # Quiet mode for shell scripts
 result=$(apfel -q "Capital of France? One word.")
