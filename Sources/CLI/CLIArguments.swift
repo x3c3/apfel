@@ -411,6 +411,7 @@ extension CLIArguments {
                 var url = part + ":" + parts[next]
                 var j = parts.index(after: next)
                 while j < parts.endIndex, !parts[j].hasPrefix("//"),
+                      !parts[j].hasPrefix("/"),   // absolute local path = end of URL
                       parts[j] != "http", parts[j] != "https" {
                     url += ":" + parts[j]
                     j = parts.index(after: j)

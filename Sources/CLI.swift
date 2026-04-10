@@ -439,7 +439,8 @@ func printUsage() {
           --temperature <n>      Sampling temperature (e.g., 0.7)
           --seed <n>             Random seed for reproducible output
           --max-tokens <n>       Maximum response tokens
-          --mcp <path>           Attach MCP tool server (repeatable)
+          --mcp <path|url>       Attach local or remote MCP tool server (repeatable)
+          --mcp-token <token>    Bearer token for remote MCP servers (prefer APFEL_MCP_TOKEN env)
           --mcp-timeout <n>      MCP server timeout in seconds [default: 5]
           --permissive           Use permissive content guardrails
           --retry [n]            Enable retry with exponential backoff [default: 3 retries]
