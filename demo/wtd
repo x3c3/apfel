@@ -1,5 +1,6 @@
 #!/bin/bash
 # wtd — what is this directory?, powered by Apple Intelligence
+# Install globally as `apfel-wtd`: see demo/README.md "Install demos globally (optional)"
 #
 # Usage:  wtd              # current directory
 #         wtd ~/projects   # any directory

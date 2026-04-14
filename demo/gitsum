@@ -1,5 +1,6 @@
 #!/bin/bash
 # gitsum — summarize recent git activity, powered by Apple Intelligence
+# Install globally as `apfel-gitsum`: see demo/README.md "Install demos globally (optional)"
 #
 # Usage:  gitsum          # last 10 commits
 #         gitsum 20       # last 20 commits

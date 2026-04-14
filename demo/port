@@ -1,5 +1,6 @@
 #!/bin/bash
 # port — what's using this port?, powered by Apple Intelligence
+# Install globally as `apfel-port`: see demo/README.md "Install demos globally (optional)"
 #
 # Usage:  port 3000
 #         port 8080

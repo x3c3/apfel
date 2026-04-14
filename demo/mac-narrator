@@ -1,5 +1,6 @@
 #!/bin/bash
 # mac-narrator -- your Mac's inner monologue, powered by Apple Intelligence
+# Install globally as `apfel-mac-narrator`: see demo/README.md "Install demos globally (optional)"
 #
 # One-shot:  mac-narrator
 # Watch:     mac-narrator --watch

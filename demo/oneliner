@@ -1,5 +1,6 @@
 #!/bin/bash
 # oneliner — complex pipe chains from plain English, powered by Apple Intelligence
+# Install globally as `apfel-oneliner`: see demo/README.md "Install demos globally (optional)"
 #
 # Usage:  oneliner "sum the third column of a CSV"
 #         oneliner -x "count unique IPs in access.log"    # execute (asks confirm)

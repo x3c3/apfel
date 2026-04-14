@@ -1,5 +1,6 @@
 #!/bin/bash
 # cmd — natural language to shell command, powered by Apple Intelligence
+# Install globally as `apfel-cmd`: see demo/README.md "Install demos globally (optional)"
 #
 # Usage:  cmd "find files larger than 100MB"
 #         cmd -x "list all open ports"       # execute (asks confirm)
