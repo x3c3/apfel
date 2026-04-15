@@ -13,9 +13,10 @@
 | `GET /health` | Supported | Model availability, context window, languages |
 | `GET /v1/logs`, `/v1/logs/stats` | Debug only | Requires `--debug` |
 | Tool calling | Supported | Native `ToolDefinition` + JSON detection. See [tool-calling-guide.md](tool-calling-guide.md) |
-| `response_format: json_object` | Supported | Via system prompt injection |
+| `response_format: json_object` | Supported | System-prompt injection; markdown fences stripped from output |
 | `temperature`, `max_tokens`, `seed` | Supported | Mapped to `GenerationOptions` |
-| `stream: true` | Supported | SSE with usage stats in final chunk |
+| `stream: true` | Supported | SSE; final usage chunk only when `stream_options: {"include_usage": true}` (per OpenAI spec) |
+| `stream_options.include_usage` | Supported | Opt-in for the empty-`choices` usage chunk before `[DONE]` |
 | `finish_reason` | Supported | `stop`, `tool_calls`, `length` |
 | Context strategies | Supported | `x_context_strategy`, `x_context_max_turns`, `x_context_output_reserve` extension fields |
 | CORS | Supported | Enable with `--cors` |
