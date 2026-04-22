@@ -18,9 +18,9 @@ Apple Silicon Macs ship a built-in LLM via [Apple FoundationModels](https://deve
 | UNIX tool | `apfel "prompt"` / `echo "text" \| apfel` | Pipe-friendly answers, file attachments, JSON output, exit codes |
 | OpenAI-compatible server | `apfel --serve` | Drop-in local `http://localhost:11434/v1` backend for OpenAI SDKs |
 
-Tool calling works in both. 4096-token context.
-
 `apfel --chat` - interactive REPL.
+
+Tool calling works in all contexts. 4096-token context.
 
 ![apfel CLI](screenshots/cli.png)
 
