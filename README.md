@@ -20,6 +20,14 @@ Apple Silicon Macs ship a built-in LLM via [Apple FoundationModels](https://deve
 
 Tool calling works in both. 4096-token context.
 
+Try it right away:
+
+```bash
+apfel --chat
+```
+
+A small interactive REPL for kicking the tyres ([Quick testing chat](#quick-testing-chat)).
+
 ![apfel CLI](screenshots/cli.png)
 
 ## Requirements & Install
@@ -318,6 +326,8 @@ Projects built on apfel. Each ships as its own repo + Homebrew formula.
 | [**apfelpad**](https://apfelpad.franzai.com) | Formula notepad - on-device AI as an inline cell function. | `brew install Arthur-Ficial/tap/apfelpad` |
 | [**apfel-mcp**](https://apfel-mcp.franzai.com) | Token-budget-optimized MCPs for the 4096 window: `url-fetch`, `ddg-search`, `search-and-fetch`. | `brew install Arthur-Ficial/tap/apfel-mcp` |
 | [**apfel-gui**](https://github.com/Arthur-Ficial/apfel-gui) | SwiftUI debug inspector: request timeline, MCP protocol viewer, TTS/STT. | `brew install Arthur-Ficial/tap/apfel-gui` |
+| [**apfel-run**](https://github.com/Arthur-Ficial/apfel-run) | UNIX wrapper adding a persistent MCP registry + TOML config on top of `apfel`. | `brew install Arthur-Ficial/tap/apfel-run` |
+| [**apfel-server-kit**](https://github.com/Arthur-Ficial/apfel-server-kit) | Swift package for ecosystem tools: discover, spawn, and stream from a local `apfel --serve`. | Swift Package |
 
 ## Community Projects
 

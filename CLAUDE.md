@@ -47,7 +47,8 @@ The README.md mirrors this priority - **violating this structure is a bug.**
 
 - Hero + tagline: UNIX tool and OpenAI-compatible server only
 - "What it is" table: **two rows** (UNIX tool, OpenAI server). Nothing else.
-- Quick Start: UNIX tool first, server second, chat gets a short subsection noting it is a quick-testing byproduct
+- Right after the table: a one-command "Try it right away: `apfel --chat`" pointer. Rationale: chat is not the main product, but it is the lowest-friction way for a new user to verify install and see apfel responding - so the try-it pointer belongs up top, next to the install block.
+- Quick Start: UNIX tool first, server second, chat gets a short subsection covering flags and variants (MCP, system prompt, debug)
 - Swift library: **one link, one line**, in a later section (e.g. "Reference Docs" or near the `apfel tree`), pointing to [docs/swift-library.md](docs/swift-library.md). No code samples, no `Package.swift` snippets, no type catalogue in the README.
 - All Swift-library detail (install snippet, import example, API surface summary, stability contract pointers, example catalogue) lives on `docs/swift-library.md` and the DocC catalog. Not in README.md.
 
