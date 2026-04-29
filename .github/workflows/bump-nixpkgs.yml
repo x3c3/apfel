@@ -68,7 +68,20 @@ jobs:
         run: |
           git remote add upstream https://github.com/NixOS/nixpkgs.git
           git fetch --depth=1 upstream master
+          git fetch --depth=1 origin master
           git reset --hard upstream/master
+          # The NIXPKGS_BUMP_PAT is a fine-grained PAT scoped to package
+          # files; it does not carry the `workflow` permission. GitHub
+          # rejects any push that touches `.github/workflows/`, even if
+          # the workflow file change came from the upstream sync rather
+          # than from us. Roll those files back to whatever the fork's
+          # own master has so the push diff stays within the PAT's scope.
+          if [[ -d .github/workflows ]]; then
+            git checkout origin/master -- .github/workflows/ 2>/dev/null || true
+            if ! git diff --quiet --cached; then
+              git commit -m "preserve fork workflow files (PAT lacks workflow scope)" --quiet
+            fi
+          fi
 
       - name: Run bump-nixpkgs.sh
         if: env.skip == '0'
