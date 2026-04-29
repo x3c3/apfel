@@ -85,7 +85,7 @@ HTTP Server (/v1/*) ───────┘   ContextManager → Transcript API
 ## Current Status
 
 - Version: `1.0.0` (source of truth: `.version`)
-- Tests: 366 unit + 220 integration
+- Tests: 597 unit + 246 integration
 - Distribution: homebrew-core (`brew install apfel`), nixpkgs (`nix profile install nixpkgs#apfel-llm`), and the Arthur-Ficial/homebrew-tap
 - Stability policy: [STABILITY.md](STABILITY.md)
 - Security policy: [SECURITY.md](SECURITY.md)
@@ -98,11 +98,11 @@ make install                   # build release + install to /usr/local/bin (NO v
 make build                     # build release only (NO version bump)
 make version                   # print current version
 swift build                    # debug build
-swift run apfel-tests          # unit tests only (366 tests)
+swift run apfel-tests          # unit tests only (597 tests)
 make preflight                 # full release qualification (unit + integration + policy checks)
 ```
 
-`make test` builds the release binary, runs all 366 unit tests, starts test servers, runs all 220 integration tests, and cleans up. This is the single command for development.
+`make test` builds the release binary, runs all 597 unit tests, starts test servers, runs all 246 integration tests, and cleans up. This is the single command for development.
 
 `make install` auto-unlinks Homebrew apfel so the dev binary takes PATH priority. `make uninstall` restores the Homebrew link.
 
@@ -131,7 +131,7 @@ bash scripts/generate-examples.sh          # ~2 minutes, overwrites docs/EXAMPLE
 | Security | `Sources/Core/OriginValidator.swift`, `Sources/SecurityMiddleware.swift` |
 | MCP client | `Sources/Core/MCPProtocol.swift`, `Sources/MCPClient.swift` |
 | MCP calculator | `mcp/calculator/server.py` |
-| Tests | `Tests/apfelTests/` (335 unit), `Tests/integration/` (216 integration) |
+| Tests | `Tests/apfelTests/` (597 unit), `Tests/integration/` (246 integration) |
 
 | Docs | `docs/` (brew-install, EXAMPLES, release, tool-calling-guide) |
 | Scripts | `scripts/generate-examples.sh`, `scripts/write-homebrew-formula.sh`, `scripts/release-preflight.sh`, `scripts/post-release-verify.sh` |
@@ -307,8 +307,8 @@ This runs locally (not on GitHub Actions - GitHub runners lack Apple Intelligenc
 1. Preflight checks (clean tree, on main, up to date with origin)
 2. Bumps `.version` (patch/minor/major)
 3. Builds the release binary
-4. Runs ALL unit tests (362+)
-5. Runs ALL 7 integration test suites with real Apple Intelligence (cli_e2e, performance, openai_client, openapi_spec, security, mcp_server, openapi_conformance)
+4. Runs ALL unit tests (~600)
+5. Runs ALL integration test suites under `Tests/integration/` with real Apple Intelligence (cli_e2e, performance, openai_client, openapi_spec, openapi_conformance, security, mcp_server, mcp_remote, plus model-free helpers like test_chat, test_brew_service, test_man_page, test_build_info, test_apfelcore_*)
 6. Commits `.version`, `README.md`, `Sources/BuildInfo.swift` and pushes to `main`
 7. Creates git tag (`v<version>`) and pushes it
 8. Packages tarball and publishes GitHub Release with changelog
@@ -359,7 +359,7 @@ apfel ships through three channels. All pull the same signed tarball from each G
 
 **What GitHub CI runs (automatic, every push/PR):**
 - Build (release binary)
-- 366 unit tests (pure Swift, no model needed)
+- ~600 unit tests (pure Swift, no model needed)
 - 21 model-free integration tests (CLI flags, help, version, file handling)
 - Total: ~387 tests
 
@@ -374,7 +374,7 @@ apfel ships through three channels. All pull the same signed tarball from each G
 
 **What runs the full suite (local, before every release):**
 - `make preflight` or `make release` on a Mac with Apple Intelligence
-- 366 unit + 220 integration (10 suites) = 586 tests, 0 skipped
+- 597 unit + 246 integration = 843 tests, 0 skipped
 - Release scripts use directory discovery (`Tests/integration/`), not explicit file lists
 - This is the REAL qualification gate. GitHub CI is a safety net, not the source of truth.
 
